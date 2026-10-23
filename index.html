@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OmniClock | Multi-World Clock & Time Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body data-theme="dark">
+  <div class="background-glows">
+    <div class="glow glow-1"></div>
+    <div class="glow glow-2"></div>
+    <div class="glow glow-3"></div>
+  </div>
+
+  <header class="app-header">
+    <div class="header-left">
+      <div class="logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <span class="brand">OmniClock</span>
+          <span class="tag">World Time Studio</span>
+        </div>
+      </div>
+      <div class="status-indicator">
+        <span class="pulse-dot" id="liveIndicator"></span>
+        <span id="liveStatusText">Live Sync Active</span>
+      </div>
+    </div>
+
+    <!-- Master Global Controls -->
+    <div class="header-center">
+      <div class="master-playback-bar">
+        <button id="masterPlayPauseBtn" class="control-btn primary-btn" title="Toggle running state of all clocks">
+          <span class="btn-icon" id="playPauseIcon">⏸</span>
+          <span id="playPauseLabel">Pause All</span>
+        </button>
+        <button id="masterSyncRealtimeBtn" class="control-btn outline-btn" title="Reset all offsets and sync with real world time">
+          <span class="btn-icon">🔄</span>
+          <span>Sync Real-Time</span>
+        </button>
+        <button id="openGlobalTweakBtn" class="control-btn outline-btn highlight-accent" title="Separately tweak Hour, Minute, and Second globally">
+          <span class="btn-icon">⚡</span>
+          <span>Tweak H:M:S</span>
+        </button>
+        <button id="addClockModalBtn" class="control-btn glow-btn" title="Add a new city or custom timezone">
+          <span class="btn-icon">＋</span>
+          <span>Add Clock</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <button id="soundToggleBtn" class="icon-btn" title="Audio Ticking sound">
+        <span class="icon">🔇</span>
+      </button>
+      <button id="displayFormatBtn" class="badge-btn" title="Toggle 12h / 24h format">
+        <span id="formatBadge">24H</span>
+      </button>
+      <button id="themeToggleBtn" class="icon-btn" title="Toggle Theme (Dark / Light)">
+        <span class="icon">🌙</span>
+      </button>
+      <button id="fullscreenBtn" class="icon-btn" title="Fullscreen Mode">
+        <span class="icon">⛶</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="main-container">
+    <!-- Quick Stats & Scrub Banner -->
+    <section class="action-banner">
+      <div class="banner-info">
+        <h1 class="page-title">Synchronized Multi-Zone Clock Matrix</h1>
+        <p class="page-subtitle">
+          Manage multiple world clocks simultaneously with independent granular adjustment for 
+          <strong>Hours</strong>, <strong>Minutes</strong>, and <strong>Seconds</strong>.
+        </p>
+      </div>
+      <div class="quick-presets">
+        <span class="preset-label">Quick Presets:</span>
+        <button class="preset-chip" data-preset="financial">Financial Markets</button>
+        <button class="preset-chip" data-preset="tech">Tech Hubs</button>
+        <button class="preset-chip" data-preset="global">Global Cap</button>
+        <button class="preset-chip" data-preset="clear">Reset Default</button>
+      </div>
+    </section>
+
+    <!-- Global Master Granular Adjuster Panel (Collapsible/Drawer) -->
+    <section id="globalAdjustPanel" class="granular-panel hidden">
+      <div class="granular-header">
+        <div class="panel-title-wrap">
+          <span class="badge">Master Adjustment</span>
+          <h3>Granular Time Controller (Affects All Clocks)</h3>
+          <p>Modify Hours, Minutes, and Seconds separately. Clocks will continue running with this customized offset.</p>
+        </div>
+        <div class="panel-actions">
+          <button id="resetGlobalOffsetsBtn" class="mini-btn danger-btn">Reset Offsets (0h 0m 0s)</button>
+          <button id="closeGlobalAdjustBtn" class="icon-btn sm">✕</button>
+        </div>
+      </div>
+
+      <div class="adjust-columns">
+        <!-- Hour Channel -->
+        <div class="tweak-card hour-card">
+          <div class="tweak-card-header">
+            <div class="unit-badge">HOUR (HH) - EXPANDED (90H+)</div>
+            <div class="current-tweak-val" id="globalHourOffsetDisplay">+0 hrs</div>
+          </div>
+          <div class="nudge-grid wide-nudge-grid">
+            <button class="nudge-btn" data-type="hour" data-val="-90">-90h</button>
+            <button class="nudge-btn" data-type="hour" data-val="-24">-24h</button>
+            <button class="nudge-btn" data-type="hour" data-val="-1">-1h</button>
+            <button class="nudge-btn primary" data-type="hour" data-val="1">+1h</button>
+            <button class="nudge-btn primary" data-type="hour" data-val="24">+24h</button>
+            <button class="nudge-btn highlight-90" data-type="hour" data-val="90">+90h</button>
+          </div>
+          <div class="slider-row">
+            <label for="globalHourSlider">Wide Scrub Range (-150h to +150h / 90h+):</label>
+            <input type="range" id="globalHourSlider" min="-150" max="150" value="0" step="1" />
+          </div>
+          <div class="direct-input-row">
+            <span>Direct Hour Offset:</span>
+            <input type="number" id="globalHourInput" value="0" min="-9999" max="9999" class="numeric-input" />
+            <button class="mini-btn apply-btn" id="applyGlobalHourInput">Set</button>
+          </div>
+        </div>
+
+        <!-- Minute Channel -->
+        <div class="tweak-card minute-card">
+          <div class="tweak-card-header">
+            <div class="unit-badge">MINUTE (MM)</div>
+            <div class="current-tweak-val" id="globalMinuteOffsetDisplay">+0 mins</div>
+          </div>
+          <div class="nudge-grid wide-nudge-grid">
+            <button class="nudge-btn" data-type="minute" data-val="-60">-60m</button>
+            <button class="nudge-btn" data-type="minute" data-val="-15">-15m</button>
+            <button class="nudge-btn" data-type="minute" data-val="-1">-1m</button>
+            <button class="nudge-btn primary" data-type="minute" data-val="1">+1m</button>
+            <button class="nudge-btn primary" data-type="minute" data-val="15">+15m</button>
+            <button class="nudge-btn primary" data-type="minute" data-val="60">+60m</button>
+          </div>
+          <div class="slider-row">
+            <label for="globalMinuteSlider">Fine to Multi-Hour Scrub (-300m to +300m):</label>
+            <input type="range" id="globalMinuteSlider" min="-300" max="300" value="0" step="1" />
+          </div>
+          <div class="direct-input-row">
+            <span>Direct Minute Offset:</span>
+            <input type="number" id="globalMinuteInput" value="0" min="-10000" max="10000" class="numeric-input" />
+            <button class="mini-btn apply-btn" id="applyGlobalMinuteInput">Set</button>
+          </div>
+        </div>
+
+        <!-- Second Channel -->
+        <div class="tweak-card second-card">
+          <div class="tweak-card-header">
+            <div class="unit-badge">SECOND (SS) - EXPANDED LIMITS</div>
+            <div class="current-tweak-val" id="globalSecondOffsetDisplay">+0 secs</div>
+          </div>
+          <div class="nudge-grid wide-nudge-grid">
+            <button class="nudge-btn" data-type="second" data-val="-300">-300s</button>
+            <button class="nudge-btn" data-type="second" data-val="-60">-60s</button>
+            <button class="nudge-btn" data-type="second" data-val="-1">-1s</button>
+            <button class="nudge-btn primary" data-type="second" data-val="1">+1s</button>
+            <button class="nudge-btn primary" data-type="second" data-val="60">+60s</button>
+            <button class="nudge-btn primary" data-type="second" data-val="300">+300s</button>
+          </div>
+          <div class="slider-row">
+            <label for="globalSecondSlider">Expanded Second Scrub (-600s to +600s):</label>
+            <input type="range" id="globalSecondSlider" min="-600" max="600" value="0" step="1" />
+          </div>
+          <div class="direct-input-row">
+            <span>Direct Second Offset:</span>
+            <input type="number" id="globalSecondInput" value="0" min="-100000" max="100000" class="numeric-input" />
+            <button class="mini-btn apply-btn" id="applyGlobalSecondInput">Set</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Toolbar Filters & Layout switch -->
+    <div class="view-toolbar">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="filterCardsInput" placeholder="Filter active clocks by city, country or timezone..." />
+      </div>
+
+      <div class="toolbar-tools">
+        <div class="view-options">
+          <span class="label">Display:</span>
+          <button class="tool-chip active" id="viewBothBtn">Both (Analog + Digital)</button>
+          <button class="tool-chip" id="viewDigitalBtn">Digital Only</button>
+          <button class="tool-chip" id="viewAnalogBtn">Analog Only</button>
+        </div>
+        <div class="view-options">
+          <span class="label">Clock Hand:</span>
+          <button class="tool-chip active" id="handSmoothBtn">Smooth Sweep</button>
+          <button class="tool-chip" id="handStepBtn">Mechanical Tick</button>
+        </div>
+        <button id="masterResetAllBtn" class="mini-btn outline" title="Reset all custom clock settings and individual offsets">
+          Reset All Individual Clocks
+        </button>
+      </div>
+    </div>
+
+    <!-- Clock Cards Grid -->
+    <section class="clocks-grid" id="clocksGrid">
+      <!-- Dynamic Clock Cards will be rendered here -->
+    </section>
+
+    <!-- Empty State -->
+    <div id="emptyGridState" class="empty-state hidden">
+      <div class="empty-icon">⏰</div>
+      <h3>No Clocks Found</h3>
+      <p>Add a new timezone clock or clear your search filter to see active clocks.</p>
+      <button class="control-btn glow-btn" id="emptyAddBtn">＋ Add Your First Clock</button>
+    </div>
+
+    <!-- Time Planner & Meeting Comparison Matrix -->
+    <section class="planner-section">
+      <div class="planner-header">
+        <div>
+          <h2>24-Hour World Schedule & Meeting Planner</h2>
+          <p>Interactive timeline comparing business hours (9 AM - 5 PM) across all active cities in real time.</p>
+        </div>
+        <div class="planner-legend">
+          <span class="legend-item"><span class="legend-box work"></span> Business Hours (9-17)</span>
+          <span class="legend-item"><span class="legend-box wake"></span> Awake (7-9 & 17-22)</span>
+          <span class="legend-item"><span class="legend-box night"></span> Night (22-7)</span>
+          <span class="legend-item"><span class="legend-box current"></span> Current Time</span>
+        </div>
+      </div>
+
+      <div class="planner-table-container">
+        <div class="planner-table" id="plannerTable">
+          <!-- Dynamically generated rows per city -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Add Clock Modal -->
+  <div class="modal-overlay hidden" id="addClockModal">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3>Add New World Clock</h3>
+        <button class="icon-btn sm" id="closeAddClockModalBtn">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-search-wrapper">
+          <input type="text" id="timezoneSearchInput" placeholder="Search by city (e.g., Tokyo, Dubai, San Francisco, London)..." autofocus />
+        </div>
+        <div class="popular-cities-heading">Suggested Global Metropolises:</div>
+        <div class="modal-list" id="timezoneSuggestionsList">
+          <!-- Suggested items populated by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Individual Clock Granular Setting Modal -->
+  <div class="modal-overlay hidden" id="individualAdjustModal">
+    <div class="modal-window wide-modal">
+      <div class="modal-header">
+        <div>
+          <span class="badge" id="modalClockBadge">Individual Setting</span>
+          <h3 id="modalClockTitle">Adjust Time for City</h3>
+          <p id="modalClockSub">Separately tweak Hours, Minutes, and Seconds for this specific clock.</p>
+        </div>
+        <button class="icon-btn sm" id="closeIndividualModalBtn">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="individual-status-bar">
+          <div class="clock-preview-digital" id="modalClockPreview">00:00:00</div>
+          <div class="clock-state-switches">
+            <button id="modalTogglePauseBtn" class="mini-btn">⏸ Pause This Clock</button>
+            <button id="modalResetOffsetBtn" class="mini-btn danger-btn">🔄 Reset Offset</button>
+          </div>
+        </div>
+
+        <div class="adjust-columns">
+          <!-- Hour Channel -->
+          <div class="tweak-card hour-card">
+            <div class="tweak-card-header">
+              <div class="unit-badge">HOUR (90H+ CAPABLE)</div>
+              <div class="current-tweak-val" id="singleHourOffsetDisplay">+0 hrs</div>
+            </div>
+            <div class="nudge-grid wide-nudge-grid">
+              <button class="nudge-btn single-nudge" data-type="hour" data-val="-90">-90h</button>
+              <button class="nudge-btn single-nudge" data-type="hour" data-val="-24">-24h</button>
+              <button class="nudge-btn single-nudge" data-type="hour" data-val="-1">-1h</button>
+              <button class="nudge-btn single-nudge primary" data-type="hour" data-val="1">+1h</button>
+              <button class="nudge-btn single-nudge primary" data-type="hour" data-val="24">+24h</button>
+              <button class="nudge-btn single-nudge highlight-90" data-type="hour" data-val="90">+90h</button>
+            </div>
+            <div class="slider-row">
+              <label for="singleHourSlider">Slider (-150h to +150h / 90h+):</label>
+              <input type="range" id="singleHourSlider" min="-150" max="150" value="0" step="1" />
+            </div>
+            <div class="direct-input-row">
+              <input type="number" id="singleHourInput" value="0" min="-9999" max="9999" class="numeric-input" />
+              <button class="mini-btn apply-btn" id="applySingleHourInput">Set Hour</button>
+            </div>
+          </div>
+
+          <!-- Minute Channel -->
+          <div class="tweak-card minute-card">
+            <div class="tweak-card-header">
+              <div class="unit-badge">MINUTE</div>
+              <div class="current-tweak-val" id="singleMinuteOffsetDisplay">+0 mins</div>
+            </div>
+            <div class="nudge-grid wide-nudge-grid">
+              <button class="nudge-btn single-nudge" data-type="minute" data-val="-60">-60m</button>
+              <button class="nudge-btn single-nudge" data-type="minute" data-val="-15">-15m</button>
+              <button class="nudge-btn single-nudge" data-type="minute" data-val="-1">-1m</button>
+              <button class="nudge-btn single-nudge primary" data-type="minute" data-val="1">+1m</button>
+              <button class="nudge-btn single-nudge primary" data-type="minute" data-val="15">+15m</button>
+              <button class="nudge-btn single-nudge primary" data-type="minute" data-val="60">+60m</button>
+            </div>
+            <div class="slider-row">
+              <label for="singleMinuteSlider">Slider (-300m to +300m):</label>
+              <input type="range" id="singleMinuteSlider" min="-300" max="300" value="0" step="1" />
+            </div>
+            <div class="direct-input-row">
+              <input type="number" id="singleMinuteInput" value="0" min="-10000" max="10000" class="numeric-input" />
+              <button class="mini-btn apply-btn" id="applySingleMinuteInput">Set Min</button>
+            </div>
+          </div>
+
+          <!-- Second Channel -->
+          <div class="tweak-card second-card">
+            <div class="tweak-card-header">
+              <div class="unit-badge">SECOND</div>
+              <div class="current-tweak-val" id="singleSecondOffsetDisplay">+0 secs</div>
+            </div>
+            <div class="nudge-grid wide-nudge-grid">
+              <button class="nudge-btn single-nudge" data-type="second" data-val="-300">-300s</button>
+              <button class="nudge-btn single-nudge" data-type="second" data-val="-60">-60s</button>
+              <button class="nudge-btn single-nudge" data-type="second" data-val="-1">-1s</button>
+              <button class="nudge-btn single-nudge primary" data-type="second" data-val="1">+1s</button>
+              <button class="nudge-btn single-nudge primary" data-type="second" data-val="60">+60s</button>
+              <button class="nudge-btn single-nudge primary" data-type="second" data-val="300">+300s</button>
+            </div>
+            <div class="slider-row">
+              <label for="singleSecondSlider">Slider (-600s to +600s):</label>
+              <input type="range" id="singleSecondSlider" min="-600" max="600" value="0" step="1" />
+            </div>
+            <div class="direct-input-row">
+              <input type="number" id="singleSecondInput" value="0" min="-100000" max="100000" class="numeric-input" />
+              <button class="mini-btn apply-btn" id="applySingleSecondInput">Set Sec</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="control-btn primary-btn" id="saveAndCloseSingleModalBtn">Done Adjusting</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="app-footer">
+    <div class="footer-content">
+      <span>OmniClock Multi-Timezone & Granular Time System</span>
+      <span class="footer-meta">High precision synced time matrix • Realtime IANA conversion</span>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
